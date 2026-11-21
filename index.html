@@ -18,17 +18,50 @@ body:before,body:after{content:"";position:fixed;z-index:-2;pointer-events:none;
 .menu-area{position:relative;z-index:1;border-top:1px solid var(--line);padding-top:25px}.menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.menu-head strong{font-size:13px;font-weight:500}.menu-head span{font-size:10px;color:#898297;letter-spacing:1.5px;direction:ltr}.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.menu a{min-height:76px;padding:15px 16px;display:flex;align-items:center;gap:13px;text-decoration:none;color:var(--ink);border:1px solid rgba(255,255,255,.095);border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.065),rgba(255,255,255,.018));transition:transform .25s,border-color .25s,background .25s}.menu a:hover{transform:translateY(-4px);border-color:rgba(190,166,255,.42);background:rgba(173,143,255,.09)}.menu-icon{width:36px;height:36px;flex:0 0 36px;border-radius:12px;display:grid;place-items:center;color:#c9b8ff;background:rgba(172,145,255,.1);border:1px solid rgba(190,166,255,.14);font-size:16px}.menu-label{font-size:12px;font-weight:500;display:block}.menu-sub{font-size:9px;color:#8f899e;margin-top:4px;display:block}.arrow{margin-right:auto;color:#8e829f;font-size:16px;transition:.2s}.menu a:hover .arrow{color:#d7c8ff;transform:translateX(-3px)}
 .footer{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:15px;padding-top:26px;margin-top:27px;border-top:1px solid var(--line);color:#817b8d;font-size:10px}.signature{font:italic 29px Georgia,serif;letter-spacing:1px;color:rgba(224,214,255,.72);direction:ltr;text-shadow:0 0 25px rgba(173,143,255,.25)}.footer-note{direction:ltr;letter-spacing:1.5px}
 @media(max-width:760px){.page{padding:16px 12px}.shell{min-height:0;border-radius:28px;padding:22px 18px}.shell:before{border-radius:27px}.hero{grid-template-columns:1fr;gap:20px;padding:40px 0 32px}.hero-copy{text-align:center}.eyebrow{justify-content:center}.intro{margin-inline:auto}.actions{justify-content:center}.visual{min-height:250px;grid-row:1}.orbit{width:230px}.core{width:100px;height:100px;font-size:50px;border-radius:30px}.float.one{right:4%}.float.two{left:3%}.float.three{left:0}.menu{grid-template-columns:repeat(2,1fr)}.menu a{min-height:72px;padding:12px}.footer{margin-top:20px}}@media(max-width:420px){.status{font-size:10px}.brandname{font-size:16px}.menu{grid-template-columns:1fr}.menu a{min-height:65px}.footer{align-items:flex-start}.signature{font-size:25px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* SKINFA GLASS — fixed frame with left-side navigation */
+.page{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:18px;padding:32px 18px}
+.shell{width:min(100%,920px);max-width:920px;flex:0 1 920px}
+.menu-area{width:190px;flex:0 0 190px;border-top:0;padding:0;align-self:center}
+.menu-head{display:block;margin-bottom:14px;padding:0 8px}
+.menu-head strong{display:block;font-size:12px}
+.menu-head span{display:block;margin-top:5px;font-size:9px}
+.menu{grid-template-columns:1fr;gap:8px}
+.menu a{min-height:64px;padding:11px 12px;border-radius:15px;gap:10px}
+.menu-icon{width:32px;height:32px;flex-basis:32px;border-radius:10px}
+.menu-label{font-size:11px}
+.menu-sub{font-size:8px}
+.menu a .arrow{font-size:14px}
+@media(max-width:900px){
+ .page{gap:12px;padding:22px 12px}
+ .shell{flex-basis:calc(100% - 174px);width:calc(100% - 174px);padding:26px}
+ .menu-area{width:162px;flex-basis:162px}
+ .hero{gap:22px;padding:42px 0 34px}
+ .orbit{width:min(100%,270px)}
+}
+@media(max-width:680px){
+ .page{flex-direction:column;align-items:stretch;gap:16px;padding:14px 12px}
+ .shell{width:100%;max-width:none;flex:0 0 auto;padding:22px 18px}
+ .menu-area{width:100%;flex:0 0 auto}
+ .menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 4px}
+ .menu-head span{margin:0}
+ .menu{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .menu a{min-height:66px;padding:10px}
+ .menu-sub{font-size:8px}
+}
+@media(max-width:420px){.menu{grid-template-columns:1fr}}
+
 </style></head>
 <body><div class="noise"></div><main class="page"><section class="shell" aria-label="SKINFA">
 <header class="topbar"><div class="brand"><div class="mark">S</div><div><div class="brandname">SKINFA</div><div class="brandline">CREATIVE DIGITAL STUDIO</div></div></div><div class="status"><i class="dot"></i> جایی برای ایده‌های متفاوت</div></header>
 <section class="hero"><div class="hero-copy"><div class="eyebrow">نگاهی تازه به دنیای دیجیتال</div><h1>ایده‌ها را فقط<br><span>نمایش نمی‌دهیم.</span></h1><p class="intro">آن‌ها را به تجربه تبدیل می‌کنیم؛ از هویت بصری و طراحی وب تا راهکارهای دیجیتال که امضای خودشان را دارند.</p><div class="actions"><a class="primary" href="#services">کشف دنیای اسکینفا <span>←</span></a><a class="secondary" href="#contact">شروع یک گفتگو</a></div></div>
 <div class="visual" aria-hidden="true"><div class="orbit"><div class="core">S</div><div class="float one">DESIGN · EXPERIENCE</div><div class="float two">BUILT TO BE DISTINCT</div><div class="float three">✦ 01 / 26</div></div></div></section>
-<section class="menu-area" id="services"><div class="menu-head"><strong>مسیر خودت را انتخاب کن</strong><span>EXPLORE SKINFA</span></div><nav class="menu" aria-label="منوی اصلی">
+
+<footer class="footer" id="contact"><span>© 2026 SKINFA · ساخته‌شده برای متفاوت بودن</span><span class="signature">skinfa</span><span class="footer-note">A DIFFERENT POINT OF VIEW</span></footer>
+</section><section class="menu-area" id="services"><div class="menu-head"><strong>مسیر خودت را انتخاب کن</strong><span>EXPLORE SKINFA</span></div><nav class="menu" aria-label="منوی اصلی">
 <a href="#exclusive"><span class="menu-icon">✳</span><span><span class="menu-label">خدمات اختصاصی</span><span class="menu-sub">تجربه‌ای فراتر از انتظار</span></span><span class="arrow">‹</span></a>
 <a href="#work"><span class="menu-icon">◈</span><span><span class="menu-label">نمونه‌کارها</span><span class="menu-sub">ایده‌هایی که جان گرفته‌اند</span></span><span class="arrow">‹</span></a>
 <a href="#studio"><span class="menu-icon">✧</span><span><span class="menu-label">استودیو و روایت‌ها</span><span class="menu-sub">نگاه ما به جهان خلاقیت</span></span><span class="arrow">‹</span></a>
 <a href="#personal"><span class="menu-icon">⌘</span><span><span class="menu-label">فضای شخصی</span><span class="menu-sub">دنیای مخصوص تو</span></span><span class="arrow">‹</span></a>
 <a href="#business"><span class="menu-icon">▧</span><span><span class="menu-label">راهکارهای کسب‌وکار</span><span class="menu-sub">از ایده تا رشد دیجیتال</span></span><span class="arrow">‹</span></a>
-<a href="#contact"><span class="menu-icon">↗</span><span><span class="menu-label">ارتباط با ما</span><span class="menu-sub">شروع یک اتفاق تازه</span></span><span class="arrow">‹</span></a></nav></section>
-<footer class="footer" id="contact"><span>© 2026 SKINFA · ساخته‌شده برای متفاوت بودن</span><span class="signature">skinfa</span><span class="footer-note">A DIFFERENT POINT OF VIEW</span></footer>
-</section></main></body></html>
+<a href="#contact"><span class="menu-icon">↗</span><span><span class="menu-label">ارتباط با ما</span><span class="menu-sub">شروع یک اتفاق تازه</span></span><span class="arrow">‹</span></a></nav></section></main></body></html>
