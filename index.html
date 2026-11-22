@@ -79,6 +79,26 @@ h1{font-size:clamp(42px,5.3vw,72px);line-height:1.34;letter-spacing:-2px;font-we
 <div class="mobile-menu" id="mobileMenu" aria-hidden="true"><div class="menu-panel" role="dialog" aria-modal="true" aria-label="منوی موبایل"><div class="menu-panel-head"><span class="menu-panel-title">کجا می‌خواهی بروی؟</span><button class="menu-close" id="menuClose" aria-label="بستن منو">×</button></div><nav class="mobile-links">
 <a href="#stories"><span class="mi">◉</span><span><b>استوری‌ها</b><small>روایت‌های تازه</small></span></a><a href="#services"><span class="mi">✳</span><span><b>خدمات ما</b><small>چه کاری انجام می‌دهیم</small></span></a><a href="#about"><span class="mi">◈</span><span><b>درباره اسکینفا</b><small>داستان و نگاه ما</small></span></a><a href="#contact"><span class="mi">↗</span><span><b>ارتباط با ما</b><small>شروع یک همکاری</small></span></a></nav><div class="menu-panel-foot">SKINFA · DIGITAL EXPERIENCE</div></div></div>
 <div class="story-viewer" id="storyViewer"><div class="story-card"><div class="story-progress"></div><button class="story-viewer-close" id="storyClose" aria-label="بستن">×</button><div class="story-content"><strong id="storyTitle">تازه‌های اسکینفا</strong><p id="storyText">ایده‌های تازه، تجربه‌های تازه.</p></div><div class="story-controls"><button id="storyPrev" aria-label="استوری قبلی"></button><button id="storyNext" aria-label="استوری بعدی"></button></div></div></div>
+<div class="admin-overlay" id="adminOverlay" aria-hidden="true">
+  <section class="admin-card" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+    <div class="admin-card-head"><h3 id="adminTitle">مدیریت هدر SKINFA</h3><button class="admin-close" id="adminClose" aria-label="بستن">×</button></div>
+    <p class="admin-help">از این بخش فقط تصویر لوگوی داخل هدر را تغییر می‌دهی؛ تصویر در فضای اختصاصی SKINFA ذخیره می‌شود و روی کل سایت یا بخش‌های دیگر اثری ندارد.</p>
+    <div id="adminAuth">
+      <label class="admin-field">ایمیل مدیر<input id="adminEmail" type="email" value="abolfazlhbc3@gmail.com" readonly></label>
+      <label class="admin-field">گذرواژه<input id="adminPassword" type="password" minlength="8" autocomplete="current-password" placeholder="حداقل ۸ کاراکتر"></label>
+      <div class="admin-actions"><button class="admin-action" id="adminLogin" type="button">ورود مدیر</button><button class="admin-action light" id="adminSignup" type="button">ساخت حساب اولیه</button></div>
+    </div>
+    <div id="adminTools" hidden>
+      <p class="admin-help">حساب مدیر تأیید شد. تصویر جدید را انتخاب و ذخیره کن.</p>
+      <label class="admin-field">تصویر لوگوی هدر<input id="headerImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/avif"></label>
+      <img class="admin-preview" id="headerImagePreview" alt="پیش‌نمایش لوگوی هدر" hidden>
+      <p class="admin-upload-note">فرمت‌های مجاز: PNG، JPG، WebP و AVIF · حداکثر حجم: ۵ مگابایت</p>
+      <div class="admin-actions"><button class="admin-action" id="headerImageUpload" type="button" disabled>ذخیره تصویر هدر</button><button class="admin-action light" id="headerImageRemove" type="button">حذف تصویر</button><button class="admin-action light" id="adminLogout" type="button">خروج</button></div>
+    </div>
+    <div class="admin-status" id="adminStatus" role="status" aria-live="polite"></div>
+  </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const header=document.getElementById('header');window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>35),{passive:true});
 const menu=document.getElementById('mobileMenu'),openBtn=document.getElementById('menuOpen'),closeBtn=document.getElementById('menuClose');
@@ -131,5 +151,88 @@ if(brandMorph){
   if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)morphBrand();
   else {brandMorph.textContent='SKINFA';}
 }
+
+/* SKINFA header-only logo management */
+(()=>{
+  const SUPABASE_URL='https://hbdzypdcnvnfceeqjlly.supabase.co';
+  const SUPABASE_KEY='sb_publishable_4XQk5Foxy_PhiuY_nHPQ4w_nCO78lfK';
+  const SITE_ID='7846c510-c690-4c70-a96e-07fe0fa1c9ed';
+  const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const overlay=document.getElementById('adminOverlay');
+  if(!overlay)return;
+  const status=document.getElementById('adminStatus');
+  const authBox=document.getElementById('adminAuth');
+  const toolsBox=document.getElementById('adminTools');
+  const password=document.getElementById('adminPassword');
+  const fileInput=document.getElementById('headerImageFile');
+  const preview=document.getElementById('headerImagePreview');
+  const uploadBtn=document.getElementById('headerImageUpload');
+  const mark=document.getElementById('brandMark');
+  let chosenFile=null;
+  const say=(message)=>{status.textContent=message};
+  function showMark(url){
+    if(url){mark.innerHTML='';const img=document.createElement('img');img.src=url;img.alt='SKINFA';mark.appendChild(img)}
+    else mark.textContent='S';
+  }
+  async function loadHeader(){
+    if(!client)return;
+    const {data,error}=await client.rpc('get_skinfa_header_config');
+    if(!error&&data?.image_url)showMark(data.image_url);
+  }
+  async function refreshAdmin(){
+    if(!client)return;
+    const {data:{user}}=await client.auth.getUser();
+    if(!user){authBox.hidden=false;toolsBox.hidden=true;return}
+    const {data:membership,error}=await client.from('site_memberships').select('role').eq('site_id',SITE_ID).eq('user_id',user.id).maybeSingle();
+    if(error||!membership||!['owner','admin'].includes(membership.role)){
+      authBox.hidden=false;toolsBox.hidden=true;say('این حساب دسترسی مدیریت SKINFA ندارد.');return;
+    }
+    authBox.hidden=true;toolsBox.hidden=false;say('مدیر وارد شد.');await loadHeader();
+  }
+  document.getElementById('adminOpen').addEventListener('click',async()=>{overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');say('');password.value='';await refreshAdmin()});
+  document.getElementById('adminClose').addEventListener('click',()=>{overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true')});
+  overlay.addEventListener('click',e=>{if(e.target===overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true')}});
+  document.getElementById('adminLogin').addEventListener('click',async()=>{
+    if(!client)return say('ارتباط با سرویس مدیریت برقرار نشد.');
+    const {error}=await client.auth.signInWithPassword({email:document.getElementById('adminEmail').value,password:password.value});
+    if(error)return say('ورود انجام نشد؛ ایمیل و گذرواژه را بررسی کن.');
+    await refreshAdmin();
+  });
+  document.getElementById('adminSignup').addEventListener('click',async()=>{
+    if(!client)return say('ارتباط با سرویس مدیریت برقرار نشد.');
+    if(password.value.length<8)return say('گذرواژه باید حداقل ۸ کاراکتر باشد.');
+    say('در حال ساخت حساب اولیه…');
+    const {data,error}=await client.auth.signUp({email:document.getElementById('adminEmail').value,password:password.value,options:{emailRedirectTo:window.location.origin}});
+    if(error)return say('ساخت حساب انجام نشد: '+error.message);
+    if(data.session){await refreshAdmin();return}
+    say('حساب ثبت شد. ایمیل تأیید را باز کن و پس از تأیید، از همین بخش وارد شو.');
+  });
+  document.getElementById('adminLogout').addEventListener('click',async()=>{await client.auth.signOut();chosenFile=null;preview.hidden=true;uploadBtn.disabled=true;await refreshAdmin();say('از حساب خارج شدی.')});
+  fileInput.addEventListener('change',()=>{
+    chosenFile=fileInput.files?.[0]||null;uploadBtn.disabled=!chosenFile;
+    if(!chosenFile){preview.hidden=true;return}
+    if(!['image/jpeg','image/png','image/webp','image/avif'].includes(chosenFile.type)||chosenFile.size>5*1024*1024){chosenFile=null;fileInput.value='';uploadBtn.disabled=true;preview.hidden=true;return say('فایل باید تصویر مجاز و حداکثر ۵ مگابایت باشد.')}
+    preview.src=URL.createObjectURL(chosenFile);preview.hidden=false;say('پیش‌نمایش آماده است.');
+  });
+  uploadBtn.addEventListener('click',async()=>{
+    if(!chosenFile||!client)return;
+    uploadBtn.disabled=true;say('در حال بارگذاری تصویر…');
+    const ext=chosenFile.type==='image/jpeg'?'jpg':chosenFile.type.split('/')[1];
+    const path=SITE_ID+'/header/logo-'+Date.now()+'.'+ext;
+    const {error:uploadError}=await client.storage.from('skinfa-public').upload(path,chosenFile,{upsert:false,cacheControl:'3600',contentType:chosenFile.type});
+    if(uploadError){uploadBtn.disabled=false;return say('بارگذاری ناموفق بود: '+uploadError.message)}
+    const {data:{publicUrl}}=client.storage.from('skinfa-public').getPublicUrl(path);
+    const {error:saveError}=await client.rpc('set_skinfa_header_image',{image_url:publicUrl});
+    if(saveError){await client.storage.from('skinfa-public').remove([path]);uploadBtn.disabled=false;return say('ذخیره تنظیمات انجام نشد: '+saveError.message)}
+    showMark(publicUrl);chosenFile=null;fileInput.value='';preview.hidden=true;uploadBtn.disabled=true;say('تصویر هدر با موفقیت ذخیره شد.');
+  });
+  document.getElementById('headerImageRemove').addEventListener('click',async()=>{
+    const {error}=await client.rpc('set_skinfa_header_image',{image_url:null});
+    if(error)return say('حذف تصویر انجام نشد: '+error.message);
+    showMark(null);chosenFile=null;fileInput.value='';preview.hidden=true;uploadBtn.disabled=true;say('تصویر حذف شد و نشان پیش‌فرض برگشت.');
+  });
+  if(client){client.auth.onAuthStateChange(()=>{setTimeout(refreshAdmin,0)});loadHeader();}
+})();
+
 </script>
 </body></html>
