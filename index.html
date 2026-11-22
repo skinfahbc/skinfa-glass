@@ -15,7 +15,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;ba
 .header-wrap{position:fixed;z-index:30;top:18px;left:0;right:0;pointer-events:none}
 .header{pointer-events:auto;width:min(1120px,calc(100% - 44px));height:76px;margin:auto;padding:10px 22px;display:flex;align-items:center;gap:24px;background:rgba(255,255,255,.68);border:1px solid rgba(255,255,255,.92);border-bottom-color:rgba(40,40,50,.08);box-shadow:0 10px 40px rgba(45,48,70,.07),inset 0 1px 0 white;backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:0 0 0 0;clip-path:polygon(0 0,100% 0,100% 100%,8% 100%,0 86%);transition:width .45s var(--ease),height .45s var(--ease),top .45s var(--ease),padding .45s var(--ease),border-radius .45s var(--ease)}
 .header.scrolled{width:min(930px,calc(100% - 54px));height:62px;top:0;padding:7px 18px;border-radius:0 0 0 0;clip-path:polygon(0 0,100% 0,100% 100%,13% 100%,0 82%)}
-.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#fff,#e9eaf1);border:1px solid white;box-shadow:0 5px 16px #55556b17,inset 0 1px white;color:#282936;font-weight:800;font-size:23px}.brand-name{font-size:18px;font-weight:800;letter-spacing:3px;direction:ltr}.brand-tag{font-size:9px;color:#8b8d96;letter-spacing:1.2px;direction:ltr;margin-top:-2px}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#fff,#e9eaf1);border:1px solid white;box-shadow:0 5px 16px #55556b17,inset 0 1px white;color:#282936;font-weight:800;font-size:23px}.brand-copy{display:flex;flex-direction:column;align-items:flex-start;min-width:94px}.brand-name{display:inline-block;font-size:18px;font-weight:800;letter-spacing:3px;direction:ltr;white-space:nowrap;min-width:94px;line-height:1.25;transition:opacity .22s ease,filter .22s ease;will-change:contents,opacity}.brand-name.is-morphing{filter:blur(.35px);letter-spacing:2px}.brand-name.is-fading{opacity:0;filter:blur(4px)}.brand-tag{font-size:9px;color:#8b8d96;letter-spacing:1.2px;direction:ltr;margin-top:-2px}
 .nav{display:flex;align-items:center;gap:5px;margin-inline:auto}.nav a{font-size:12px;color:#60626b;padding:10px 13px;border-radius:13px;transition:.25s}.nav a:hover{background:#fff;color:#202127;box-shadow:0 4px 14px #30334a0d}
 .header-actions{display:flex;align-items:center;gap:8px}.glass-btn{border:1px solid #fff;background:rgba(255,255,255,.75);box-shadow:0 4px 15px #383a500b,inset 0 1px white;border-radius:14px;min-width:42px;height:42px;display:grid;place-items:center;color:#383a44;transition:.25s}.glass-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px #383a5016}.contact-btn{height:42px;padding:0 17px;border-radius:14px;border:0;background:#202127;color:white;font-size:11px;box-shadow:0 8px 18px #25263120}
 .menu-toggle{display:none}
@@ -39,7 +39,7 @@ h1{font-size:clamp(42px,5.3vw,72px);line-height:1.34;letter-spacing:-2px;font-we
 </head>
 <body>
 <div class="header-wrap"><header class="header" id="header">
-<a class="brand" href="#top" aria-label="SKINFA خانه"><span class="brand-mark">S</span><span><span class="brand-name">SKINFA</span><span class="brand-tag">DIGITAL EXPERIENCE</span></span></a>
+<a class="brand" href="#top" aria-label="اسکینفا"><span class="brand-mark">S</span><span class="brand-copy"><span class="brand-name" id="brandMorph" aria-label="SKINFA">SKINFA</span><span class="brand-tag">DIGITAL EXPERIENCE</span></span></a>
 <nav class="nav" aria-label="ناوبری اصلی"><a href="#stories">استوری‌ها</a><a href="#services">خدمات</a><a href="#about">درباره ما</a><a href="#contact">ارتباط</a></nav>
 <div class="header-actions"><a class="contact-btn" href="#contact">شروع همکاری <span>↗</span></a><button class="glass-btn" aria-label="جستجو">⌕</button><button class="glass-btn menu-toggle" id="menuOpen" aria-label="باز کردن منو" aria-expanded="false" aria-controls="mobileMenu">☰</button></div>
 </header></div>
@@ -83,5 +83,43 @@ document.querySelectorAll('[data-story]').forEach(b=>b.addEventListener('click',
 document.getElementById('storyClose').addEventListener('click',closeStory);document.getElementById('storyNext').addEventListener('click',()=>showStory(storyIndex+1));document.getElementById('storyPrev').addEventListener('click',()=>showStory(storyIndex-1));viewer.addEventListener('click',e=>{if(e.target===viewer)closeStory()});
 document.getElementById('scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 let auto=false,autoTimer;const play=document.getElementById('scrollPlay');play.addEventListener('click',()=>{auto=!auto;play.textContent=auto?'Ⅱ':'▶';play.setAttribute('aria-label',auto?'توقف حرکت خودکار':'حرکت خودکار صفحه');if(auto){autoTimer=setInterval(()=>{if(window.scrollY+innerHeight>=document.documentElement.scrollHeight-4){window.scrollTo({top:0,behavior:'smooth'})}else window.scrollBy({top:innerHeight*.72,behavior:'smooth'})},4200)}else clearInterval(autoTimer)});
+
+const brandMorph=document.getElementById('brandMorph');
+if(brandMorph){
+  const brandPhases=[
+    {text:'SKINFA',dir:'ltr',label:'SKINFA'},
+    {text:'اسکینفا',dir:'rtl',label:'اسکینفا'}
+  ];
+  const glyphs={ltr:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',rtl:'اسکینفاد'};
+  let phase=0,brandTimer=null;
+  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  async function morphBrand(){
+    const target=brandPhases[phase];
+    const alphabet=glyphs[target.dir];
+    brandMorph.classList.remove('is-fading');
+    brandMorph.classList.add('is-morphing');
+    brandMorph.dir=target.dir;
+    brandMorph.setAttribute('aria-label',target.label);
+    const length=[...target.text].length;
+    for(let frame=0;frame<8;frame++){
+      const scrambled=Array.from({length},(_,i)=>{
+        if(frame===7)return [...target.text][i];
+        if(Math.random()<.28+frame*.085)return [...target.text][i];
+        return alphabet[Math.floor(Math.random()*alphabet.length)];
+      }).join('');
+      brandMorph.textContent=scrambled;
+      await wait(65);
+    }
+    brandMorph.textContent=target.text;
+    brandMorph.classList.remove('is-morphing');
+    await wait(1650);
+    brandMorph.classList.add('is-fading');
+    await wait(260);
+    phase=(phase+1)%brandPhases.length;
+    brandTimer=setTimeout(morphBrand,80);
+  }
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)morphBrand();
+  else {brandMorph.textContent='SKINFA';}
+}
 </script>
 </body></html>
