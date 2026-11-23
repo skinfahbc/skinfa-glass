@@ -179,11 +179,11 @@ button class="play" id="scrollPlay" aria-label="حرکت خودکار صفحه">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const cc=document.getElementById('controlCenter'),ccOpen=document.getElementById('controlCenterOpen'),ccClose=document.getElementById('ccClose');
-const profileOverlay=document.getElementById('ccProfileOverlay'),searchOverlay=document.getElementById('ccSearchOverlay');
-let ccStartY=0,ccStartX=0;
+const profileOverlay=document.getElementById('ccProfileOverlay'),searchOverlay=document.getElementById('ccSearchOverlay'),preview=document.getElementById('projectPreview'),previewFrame=document.getElementById('previewFrame');
+let ccStartY=0,ccStartX=0,currentProject=0,currentProjectUrl='';
 function openControlCenter(){cc.classList.add('open');cc.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
 function closeControlCenter(){cc.classList.remove('open');cc.setAttribute('aria-hidden','true');document.body.style.overflow=''}
-function openProfile(){closeControlCenter();profileOverlay.classList.add('open');profileOverlay.setAttribute('aria-hidden','false');['Name','Phone','Email','Address'].forEach(k=>{document.getElementById('ccProfile'+k).value=localStorage.getItem('skinfa_profile_'+k.toLowerCase())||''})}
+function openProfile(){closeControlCenter();profileOverlay.classList.add('open');profileOverlay.setAttribute('aria-hidden','false');['Name','Phone','Email','Address'].forEach(k=>document.getElementById('ccProfile'+k).value=localStorage.getItem('skinfa_profile_'+k.toLowerCase())||'')}
 function closeProfile(){profileOverlay.classList.remove('open');profileOverlay.setAttribute('aria-hidden','true')}
 function openSearch(){searchOverlay.classList.add('open');searchOverlay.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('ccSearchInput').focus(),80)}
 function closeSearch(){searchOverlay.classList.remove('open');searchOverlay.setAttribute('aria-hidden','true')}
@@ -191,44 +191,59 @@ ccOpen.addEventListener('click',openControlCenter);ccClose.addEventListener('cli
 cc.addEventListener('click',e=>{if(e.target===cc)closeControlCenter()});
 cc.addEventListener('touchstart',e=>{ccStartY=e.touches[0].clientY;ccStartX=e.touches[0].clientX},{passive:true});
 cc.addEventListener('touchend',e=>{const dy=e.changedTouches[0].clientY-ccStartY,dx=e.changedTouches[0].clientX-ccStartX;if(dy < -75 && Math.abs(dx)<90)closeControlCenter()},{passive:true});
-document.addEventListener('touchstart',e=>{if(!cc.classList.contains('open')&&e.touches[0].clientY<42){ccStartY=e.touches[0].clientY;ccStartX=e.touches[0].clientX}},{passive:true});
-document.addEventListener('touchend',e=>{if(cc.classList.contains('open'))return;const t=e.changedTouches[0],dy=t.clientY-ccStartY,dx=t.clientX-ccStartX;if(ccStartY<42&&dy>90&&Math.abs(dx)<85)openControlCenter()},{passive:true});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeControlCenter();closeProfile();closeSearch()}});
-document.getElementById('ccStories').addEventListener('click',()=>{closeControlCenter();document.getElementById('stories').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccBrightness').addEventListener('input',e=>{const v=Number(e.target.value)/100;document.querySelector('.header-wrap').style.filter='brightness('+v+')';document.querySelector('main').style.filter='brightness('+v+')';document.querySelector('.footer').style.filter='brightness('+v+')'});
-document.getElementById('ccGlass').addEventListener('input',e=>{const v=Number(e.target.value);cc.querySelector('.cc-connectivity').style.setProperty('--glass-alpha',(.2+v/125).toFixed(2));cc.querySelector('.cc-now-playing').style.backdropFilter='blur('+(6+v*.28)+'px) saturate(180%)'});
-document.getElementById('ccProfile').addEventListener('click',openProfile);
-document.getElementById('ccProfileClose').addEventListener('click',closeProfile);
+document.addEventListener('touchstart',e=>{if(!cc.classList.contains('open')&&window.scrollY<4&&e.touches[0].clientY<36){ccStartY=e.touches[0].clientY;ccStartX=e.touches[0].clientX}},{passive:true});
+document.addEventListener('touchend',e=>{if(cc.classList.contains('open'))return;const t=e.changedTouches[0],dy=t.clientY-ccStartY,dx=t.clientX-ccStartX;if(window.scrollY<4&&ccStartY<36&&dy>75&&Math.abs(dx)<85)openControlCenter()},{passive:true});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeControlCenter();closeProfile();closeSearch();closePreview()}});
+document.getElementById('ccTheme').addEventListener('click',e=>{document.body.classList.toggle('cc-dark');e.currentTarget.classList.toggle('active',document.body.classList.contains('cc-dark'))});
+document.getElementById('ccLanguage').addEventListener('click',e=>{const root=document.documentElement;const english=root.lang!=='en';root.lang=english?'en':'fa';root.dir=english?'ltr':'rtl';e.currentTarget.querySelector('small').textContent=english?'EN / FA':'FA / EN';document.getElementById('ccLanguage').title=english?'جهت انگلیسی فعال شد؛ ترجمه کامل محتوا در نسخه بعدی تکمیل می‌شود':'چیدمان فارسی فعال شد';});
+document.getElementById('ccBudget').addEventListener('input',e=>{document.getElementById('ccBudgetValue').textContent=Number(e.target.value).toLocaleString('fa-IR')+' میلیون تومان';});
+document.getElementById('ccFontSize').addEventListener('input',e=>{document.documentElement.style.setProperty('--font-scale',Number(e.target.value)/100);document.getElementById('ccFontValue').textContent=Number(e.target.value).toLocaleString('fa-IR')+'٪'});
+document.getElementById('ccProjectType').addEventListener('change',e=>{const map={'فروشگاهی':'35','شرکتی':'25','شخصی':'12','لندینگ':'12'};document.getElementById('calcType').value=map[e.target.value];updateEstimate()});
+document.getElementById('ccProfile').addEventListener('click',openProfile);document.getElementById('ccProfileClose').addEventListener('click',closeProfile);
 profileOverlay.addEventListener('click',e=>{if(e.target===profileOverlay)closeProfile()});
 document.getElementById('ccProfileSave').addEventListener('click',()=>{['Name','Phone','Email','Address'].forEach(k=>localStorage.setItem('skinfa_profile_'+k.toLowerCase(),document.getElementById('ccProfile'+k).value.trim()));closeProfile();openControlCenter()});
-document.getElementById('searchOpen').addEventListener('click',openSearch);
-document.getElementById('ccSearchClose').addEventListener('click',closeSearch);
+document.getElementById('searchOpen').addEventListener('click',openSearch);document.getElementById('ccSearchClose').addEventListener('click',closeSearch);
 searchOverlay.addEventListener('click',e=>{if(e.target===searchOverlay)closeSearch()});
-document.getElementById('ccSearchInput').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();const found=[...document.querySelectorAll('main h1,main h2,main h3,main p,main a')].filter(el=>q&&el.textContent.toLowerCase().includes(q)).slice(0,6);document.getElementById('ccSearchResults').innerHTML=found.length?found.map((el,i)=>'<button class="cc-search-result" style="display:block;width:100%;text-align:right;padding:10px;border:0;border-bottom:1px solid #ffffff18;background:transparent;color:white" data-result="'+i+'">'+el.textContent.trim().slice(0,90)+'</button>').join(''):'نتیجه‌ای پیدا نشد.';window.skinfaSearchTargets=found});
+document.getElementById('ccSearchInput').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();const found=[...document.querySelectorAll('main h1,main h2,main h3,main p,main a')].filter(el=>q&&el.textContent.toLowerCase().includes(q)).slice(0,7);document.getElementById('ccSearchResults').innerHTML=found.length?found.map((el,i)=>'<button style="display:block;width:100%;text-align:right;padding:10px;border:0;border-bottom:1px solid #ffffff18;background:transparent;color:inherit" data-result="'+i+'">'+el.textContent.trim().slice(0,90)+'</button>').join(''):'نتیجه‌ای پیدا نشد.';window.skinfaSearchTargets=found});
 document.getElementById('ccSearchResults').addEventListener('click',e=>{const btn=e.target.closest('[data-result]');if(!btn)return;const el=window.skinfaSearchTargets?.[Number(btn.dataset.result)];closeSearch();el?.scrollIntoView({behavior:'smooth',block:'center'})});
-document.getElementById('ccOrders').addEventListener('click',()=>{closeControlCenter();document.getElementById('contact').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccCart').addEventListener('click',()=>{closeControlCenter();document.getElementById('services').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccProducts').addEventListener('click',()=>{closeControlCenter();document.getElementById('services').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccSupport').addEventListener('click',()=>{closeControlCenter();document.getElementById('contact').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccCustomize').addEventListener('click',()=>document.getElementById('ccGlass').focus());
-document.querySelectorAll('#ccAirplane,#ccNetwork,#ccWifi,#ccBluetooth,#ccNotifications,#ccFocus,#ccRotate,#ccSilent').forEach(btn=>btn.addEventListener('click',()=>btn.classList.toggle('active')));
-document.getElementById('ccFocusWide').addEventListener('click',e=>{document.body.classList.toggle('cc-dark');e.currentTarget.classList.toggle('active',document.body.classList.contains('cc-dark'))});
-document.getElementById('ccFavorites').addEventListener('click',()=>{closeControlCenter();document.getElementById('stories').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccAdmin').addEventListener('click',()=>{closeControlCenter();document.getElementById('adminOpen').click()});
+function jump(id){closeControlCenter();document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'})}
+[['ccCalculator','calculator'],['ccServices','services'],['ccPortfolio','portfolio'],['ccChat','chat'],['ccSeo','seo'],['ccSupport','chat'],['ccQuickOrder','chat'],['ccFaq','faq'],['ccAudit','chat'],['ccReviews','reviews']].forEach(([btn,id])=>document.getElementById(btn).addEventListener('click',()=>jump(id)));
+document.getElementById('ccPalette').addEventListener('click',()=>{closeControlCenter();document.getElementById('palettePop').classList.add('open')});
+document.getElementById('paletteClose').addEventListener('click',()=>document.getElementById('palettePop').classList.remove('open'));
+document.querySelectorAll('.palette-swatches button').forEach(btn=>btn.addEventListener('click',()=>{document.documentElement.style.setProperty('--accent',btn.dataset.color);document.getElementById('palettePop').classList.remove('open')}));
+document.getElementById('ccResponsive').addEventListener('click',()=>{closeControlCenter();const frame=document.getElementById('previewFrame');frame.classList.toggle('device-mobile');document.getElementById('previewTitle').textContent='پیش‌نمایش واکنش‌گرا · موبایل / دسکتاپ';preview.classList.add('open');preview.setAttribute('aria-hidden','false')});
+const projects=[
+{id:'dj',title:'DJ HBC',desc:'وب‌سایت موسیقی و برند شخصی',url:'https://djhbc.ir/'},
+{id:'persian',title:'PERSIAN',desc:'فروشگاه بدلیجات و اکسسوری',url:'http://persian4634.ir/'},
+{id:'sise',title:'SISE STORE',desc:'فروشگاه اینترنتی',url:'https://sisestore.ir/'},
+{id:'fashion',title:'ATELIER 09',desc:'فروشگاه مفهومی مد',html:'<body style="margin:0;background:#f1e7df;color:#312a27;font-family:Arial;text-align:center;padding:8vh 7vw"><small>ATELIER 09 · NEW COLLECTION</small><h1 style="font-size:clamp(35px,8vw,90px);font-weight:400">Wear your<br>own story.</h1><div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><div style="background:#b88e7b;padding:80px 35px;color:white">01 / FORM</div><div style="background:#d7c3b4;padding:80px 35px">02 / TEXTURE</div><div style="background:#8c6f63;padding:80px 35px;color:white">03 / DETAIL</div></div><p>Minimal fashion · Made to last</p></body>'},
+{id:'cafe',title:'ROAST & ROOT',desc:'کافه و رزرو میز',html:'<body style="margin:0;background:#18231d;color:#f5ead7;font-family:Georgia;text-align:center;padding:8vh 8vw"><small>COFFEE · COMMUNITY · SLOW DAYS</small><h1 style="font-size:clamp(38px,8vw,88px);font-weight:400">ROAST<br>& ROOT</h1><p>Good coffee. Better conversations.</p><div style="margin:45px auto;padding:35px;border:1px solid #a68d65;max-width:520px">ESPRESSO　　FILTER　　PASTRY<br><br>Open daily · 08:00 — 22:00</div><button style="padding:14px 28px;background:#d7b783;border:0">RESERVE A TABLE</button></body>'},
+{id:'arch',title:'FORMA',desc:'استودیوی معماری و طراحی داخلی',html:'<body style="margin:0;background:#dedbd2;color:#292b29;font-family:Arial;padding:7vh 8vw"><small>FORMA / ARCHITECTURE STUDIO</small><h1 style="font-size:clamp(45px,9vw,100px);font-weight:400;line-height:.95">Space<br>with purpose.</h1><div style="height:230px;background:linear-gradient(125deg,#a9a69a,#e8e4da 40%,#77786e);margin:35px 0"></div><p>We shape quiet, human-centered spaces.</p></body>'},
+{id:'doctor',title:'CARE / CLINIC',desc:'کلینیک و خدمات سلامت',html:'<body style="margin:0;background:#e8f1ef;color:#25434a;font-family:Arial;text-align:center;padding:8vh 8vw"><small>CARE / CLINIC</small><h1 style="font-size:clamp(38px,8vw,85px);font-weight:400">Care that<br>starts with you.</h1><p>Appointments · Specialists · Your wellbeing</p><div style="display:flex;gap:12px;justify-content:center;margin:35px"><div style="padding:35px;background:#c5ddda">CONSULT</div><div style="padding:35px;background:#d6e8e4">PREVENT</div><div style="padding:35px;background:#b2cfca">CARE</div></div></body>'},
+{id:'folio',title:'NOOR / FOLIO',desc:'پورتفولیوی شخصی خلاق',html:'<body style="margin:0;background:#191923;color:#f4f0e9;font-family:Arial;padding:8vh 8vw"><small>INDEPENDENT DESIGNER / 2026</small><h1 style="font-size:clamp(45px,10vw,110px);font-weight:400">Ideas<br>into form<span style="color:#b6a0e8">.</span></h1><p>Selected works · Art direction · Digital craft</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:45px"><div style="height:170px;background:linear-gradient(135deg,#8073a6,#28283a)"></div><div style="height:170px;background:linear-gradient(135deg,#c59e7c,#423c43)"></div></div></body>'}
+];
+function openProject(index){currentProject=(index+projects.length)%projects.length;const p=projects[currentProject];document.getElementById('previewTitle').textContent=p.title;document.getElementById('previewCaption').textContent=p.desc;document.getElementById('ccProjectTitle').textContent=p.title;document.getElementById('ccProjectDescription').textContent=p.desc;document.getElementById('ccProjectView').textContent='↗';currentProjectUrl=p.url||'';previewFrame.classList.remove('device-mobile');if(p.url){previewFrame.removeAttribute('srcdoc');previewFrame.src=p.url;document.getElementById('previewNote').textContent='پیش‌نمایش داخل همین پنجره است؛ اگر سایت مقصد اجازه نمایش در قاب داخلی ندهد، ممکن است محتوای آن بارگذاری نشود.'}else{previewFrame.removeAttribute('src');previewFrame.srcdoc='<!doctype html><html><meta name="viewport" content="width=device-width,initial-scale=1"><'+p.html;document.getElementById('previewNote').textContent='طرح مفهومی ساخته‌شده برای نمایش نمونه سبک طراحی SKINFA است؛ پروژه تحویل‌شده یا سایت فعال نیست.'}preview.classList.add('open');preview.setAttribute('aria-hidden','false')}
+document.querySelectorAll('[data-project]').forEach(card=>card.addEventListener('click',()=>openProject(projects.findIndex(p=>p.id===card.dataset.project))));
+document.getElementById('ccProjectPrev').addEventListener('click',()=>openProject(currentProject-1));document.getElementById('ccProjectNext').addEventListener('click',()=>openProject(currentProject+1));document.getElementById('ccProjectView').addEventListener('click',()=>openProject(currentProject));
+function closePreview(){preview.classList.remove('open');preview.setAttribute('aria-hidden','true')}
+document.getElementById('previewClose').addEventListener('click',closePreview);document.getElementById('previewReload').addEventListener('click',()=>{if(currentProjectUrl)previewFrame.src=currentProjectUrl;else openProject(currentProject)});preview.addEventListener('click',e=>{if(e.target===preview)closePreview()});
+function updateEstimate(){const base=Number(document.getElementById('calcType').value),design=Number(document.getElementById('calcDesign').value),pages=Number(document.getElementById('calcPages').value),extra=Number(document.getElementById('calcExtras').value);const total=(base*design+Math.max(0,pages-5)*.8+extra);document.getElementById('calcPagesValue').textContent=pages.toLocaleString('fa-IR')+' صفحه';document.getElementById('calcTotal').textContent=total.toLocaleString('fa-IR',{maximumFractionDigits:1})+' میلیون تومان'}
+['calcType','calcDesign','calcPages','calcExtras'].forEach(id=>document.getElementById(id).addEventListener('input',updateEstimate));updateEstimate();
+document.getElementById('scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+let auto=false,autoTimer;const play=document.getElementById('scrollPlay');play.addEventListener('click',()=>{auto=!auto;play.textContent=auto?'Ⅱ':'▶';if(auto){autoTimer=setInterval(()=>{if(window.scrollY+innerHeight>=document.documentElement.scrollHeight-4)window.scrollTo({top:0,behavior:'smooth'});else window.scrollBy({top:innerHeight*.72,behavior:'smooth'})},4200)}else clearInterval(autoTimer)});
 const header=document.getElementById('header');window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>35),{passive:true});
 const menu=document.getElementById('mobileMenu'),openBtn=document.getElementById('menuOpen'),closeBtn=document.getElementById('menuClose');
 function closeMenu(){menu.classList.remove('open');menu.setAttribute('aria-hidden','true');openBtn.setAttribute('aria-expanded','false');document.body.style.overflow=''}
 openBtn.addEventListener('click',()=>{menu.classList.add('open');menu.setAttribute('aria-hidden','false');openBtn.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';closeBtn.focus()});
-closeBtn.addEventListener('click',closeMenu);menu.addEventListener('click',e=>{if(e.target===menu||e.target.closest('a'))closeMenu()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();closeStory()}});
-const stories=[['استوری شما','این بخش در نسخه اصلی به پنل مدیریت و آپلود استوری متصل خواهد شد.'],['تازه‌های اسکینفا','ایده‌های تازه، تجربه‌های تازه؛ به دنیای جدید SKINFA خوش آمدی.'],['پشت صحنه','هر تجربه خوب، از جزئیات کوچک و فکرهای بزرگ ساخته می‌شود.'],['ایده‌های خاص','ما به راه‌حل‌های تکراری قانع نمی‌شویم.'],['نمونه‌کارها','اینجا جایی است که ایده‌ها شکل واقعی پیدا می‌کنند.'],['همکاری با ما','یک گفت‌وگو می‌تواند شروع یک اتفاق متفاوت باشد.']];
+closeBtn.addEventListener('click',closeMenu);menu.addEventListener('click',e=>{if(e.target===menu||e.target.closest('a'))closeMenu()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();closeStory()}});
+const stories=[['',''],['از ایده تا اجرا','هر پروژه با شنیدن نیاز واقعی شروع می‌شود؛ بعد مسیر طراحی، ساخت و انتشار را قدم‌به‌قدم پیش می‌بریم.'],['طراحی تجربه','رنگ و تصویر فقط شروع ماجراست؛ مسیر کاربر باید ساده، روشن و لذت‌بخش باشد.'],['فناوری وب','HTML ساختار می‌دهد، CSS ظاهر می‌سازد و JavaScript تجربه را تعاملی می‌کند.'],['رشد و سئو','سایت خوب باید سریع باشد، درست فهمیده شود و محتوای مفید به مخاطب برساند.'],['همکاری','از یک گفت‌وگوی کوتاه می‌توان پروژه‌ای ساخت که سال‌ها رشد کند.']];
 let storyIndex=1;const viewer=document.getElementById('storyViewer');
-function showStory(i){storyIndex=(i+stories.length)%stories.length;document.getElementById('storyTitle').textContent=stories[storyIndex][0];document.getElementById('storyText').textContent=stories[storyIndex][1];viewer.classList.add('open')}
+function showStory(i){storyIndex=(i+stories.length-1)%(stories.length-1)+1;document.getElementById('storyTitle').textContent=stories[storyIndex][0];document.getElementById('storyText').textContent=stories[storyIndex][1];viewer.classList.add('open')}
 function closeStory(){viewer.classList.remove('open')}
-document.querySelectorAll('[data-story]').forEach(b=>b.addEventListener('click',()=>showStory(Number(b.dataset.story))));
-document.getElementById('storyClose').addEventListener('click',closeStory);document.getElementById('storyNext').addEventListener('click',()=>showStory(storyIndex+1));document.getElementById('storyPrev').addEventListener('click',()=>showStory(storyIndex-1));viewer.addEventListener('click',e=>{if(e.target===viewer)closeStory()});
-document.getElementById('scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-let auto=false,autoTimer;const play=document.getElementById('scrollPlay');play.addEventListener('click',()=>{auto=!auto;play.textContent=auto?'Ⅱ':'▶';play.setAttribute('aria-label',auto?'توقف حرکت خودکار':'حرکت خودکار صفحه');if(auto){autoTimer=setInterval(()=>{if(window.scrollY+innerHeight>=document.documentElement.scrollHeight-4){window.scrollTo({top:0,behavior:'smooth'})}else window.scrollBy({top:innerHeight*.72,behavior:'smooth'})},4200)}else clearInterval(autoTimer)});
-
+document.querySelectorAll('[data-story]').forEach(b=>b.addEventListener('click',()=>showStory(Number(b.dataset.story))));document.getElementById('storyClose').addEventListener('click',closeStory);document.getElementById('storyNext').addEventListener('click',()=>showStory(storyIndex+1));document.getElementById('storyPrev').addEventListener('click',()=>showStory(storyIndex-1));viewer.addEventListener('click',e=>{if(e.target===viewer)closeStory()});
+const pubClient=window.supabase?.createClient('https://hbdzypdcnvnfceeqjlly.supabase.co','sb_publishable_4XQk5Foxy_PhiuY_nHPQ4w_nCO78lfK');
+document.getElementById('contactMessageForm').addEventListener('submit',async e=>{e.preventDefault();const ack=document.getElementById('chatAck'),button=e.currentTarget.querySelector('button[type=submit]');if(!pubClient){ack.textContent='ارتباط با سامانه پیام برقرار نشد؛ کمی بعد دوباره تلاش کن.';return}button.disabled=true;ack.classList.remove('success');ack.textContent='در حال ثبت پیام…';const payload={site_id:'7846c510-c690-4c70-a96e-07fe0fa1c9ed',name:document.getElementById('messageName').value.trim(),contact:document.getElementById('messageContact').value.trim(),topic:document.getElementById('messageTopic').value,message:document.getElementById('messageBody').value.trim()};const {error}=await pubClient.from('skinfa_contact_messages').insert(payload);button.disabled=false;if(error){ack.textContent='ارسال پیام انجام نشد. لطفاً دوباره تلاش کن.';return}ack.classList.add('success');ack.textContent='پیام شما دریافت شد. در اولین فرصت، پاسخ شما از سمت مدیریت داده می‌شود.';e.currentTarget.reset()});
 const brandMorph=document.getElementById('brandMorph');
 if(brandMorph){
   const brandPhases=[
@@ -285,6 +300,25 @@ if(brandMorph){
   const mark=document.getElementById('brandMark');
   let chosenFile=null;
   const say=(message)=>{status.textContent=message};
+  async function loadMessages(){
+    const list=document.getElementById('adminMessagesList');if(!list||!client)return;
+    list.textContent='در حال دریافت پیام‌ها…';
+    const {data,error}=await client.from('skinfa_contact_messages').select('*').order('created_at',{ascending:false}).limit(40);
+    if(error){list.textContent='دریافت پیام‌ها ناموفق بود: '+error.message;return}
+    if(!data?.length){list.textContent='هنوز پیامی ثبت نشده است.';return}
+    list.innerHTML=data.map(m=>'<article class="admin-message" data-message="'+m.id+'"><small>'+new Date(m.created_at).toLocaleString('fa-IR')+' · '+(m.status==='replied'?'پاسخ داده شده':m.status==='seen'?'دیده شده':'جدید')+'</small><b>'+escapeAdmin(m.name)+' · '+escapeAdmin(m.contact)+'</b><small>موضوع: '+escapeAdmin(m.topic||'عمومی')+'</small><p>'+escapeAdmin(m.message)+'</p>'+(m.admin_reply?'<p><b>پاسخ مدیریت:</b><br>'+escapeAdmin(m.admin_reply)+'</p>':'')+'<textarea placeholder="پاسخ مدیریت را بنویس…">'+(m.admin_reply||'')+'</textarea><button type="button" data-reply="'+m.id+'">ثبت پاسخ</button></article>').join('');
+  }
+  function escapeAdmin(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+  document.getElementById('adminMessagesRefresh')?.addEventListener('click',loadMessages);
+  document.getElementById('adminMessagesList')?.addEventListener('click',async e=>{
+    const button=e.target.closest('[data-reply]');if(!button)return;
+    const card=button.closest('[data-message]'),id=button.dataset.reply,reply=card.querySelector('textarea').value.trim();
+    if(!reply)return say('متن پاسخ را وارد کن.');
+    button.disabled=true;const {error}=await client.from('skinfa_contact_messages').update({admin_reply:reply,status:'replied',replied_at:new Date().toISOString()}).eq('id',id);
+    button.disabled=false;if(error)return say('ثبت پاسخ ناموفق بود: '+error.message);
+    say('پاسخ مدیریت ثبت شد.');await loadMessages();
+  });
+
   function showMark(url){
     if(url){mark.innerHTML='';const img=document.createElement('img');img.src=url;img.alt='SKINFA';mark.appendChild(img)}
     else mark.textContent='S';
@@ -302,7 +336,7 @@ if(brandMorph){
     if(error||!membership||!['owner','admin'].includes(membership.role)){
       authBox.hidden=false;toolsBox.hidden=true;say('این حساب دسترسی مدیریت SKINFA ندارد.');return;
     }
-    authBox.hidden=true;toolsBox.hidden=false;say('مدیر وارد شد.');await loadHeader();
+    authBox.hidden=true;toolsBox.hidden=false;say('مدیر وارد شد.');await loadHeader();await loadMessages();
   }
   document.getElementById('adminOpen').addEventListener('click',async()=>{overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');say('');password.value='';await refreshAdmin()});
   document.getElementById('adminClose').addEventListener('click',()=>{overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true')});
