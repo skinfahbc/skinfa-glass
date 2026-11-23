@@ -162,7 +162,7 @@ h1{font-size:clamp(42px,5.3vw,72px);line-height:1.34;letter-spacing:-2px;font-we
     <div id="adminAuth">
       <label class="admin-field">ایمیل مدیر<input id="adminEmail" type="email" value="abolfazlhbc3@gmail.com" readonly></label>
       <label class="admin-field">گذرواژه<input id="adminPassword" type="password" minlength="8" autocomplete="current-password" placeholder="حداقل ۸ کاراکتر"></label>
-      <div class="admin-actions"><button class="admin-action" id="adminLogin" type="button">ورود مدیر</button><button class="admin-action light" id="adminSignup" type="button">ساخت حساب اولیه</button></div>
+      <div class="admin-actions"><button class="admin-action" id="adminLogin" type="button">ورود مدیر</button><button class="admin-action light" id="adminSignup" type="button">ساخت حساب اولیه</button><button class="admin-action light" id="adminResend" type="button">ارسال دوباره ایمیل تأیید</button></div>
     </div>
     <div id="adminTools" hidden>
       <p class="admin-help">حساب مدیر تأیید شد. تصویر جدید را انتخاب و ذخیره کن.</p>
@@ -344,7 +344,7 @@ if(brandMorph){
   document.getElementById('adminLogin').addEventListener('click',async()=>{
     if(!client)return say('ارتباط با سرویس مدیریت برقرار نشد.');
     const {error}=await client.auth.signInWithPassword({email:document.getElementById('adminEmail').value,password:password.value});
-    if(error)return say('ورود انجام نشد؛ ایمیل و گذرواژه را بررسی کن.');
+    if(error){if(error.code==='email_not_confirmed'||String(error.message||'').toLowerCase().includes('email not confirmed'))return say('ایمیل هنوز تأیید نشده است. صندوق ورودی یا هرزنامه را بررسی کن یا «ارسال دوباره ایمیل تأیید» را بزن.');return say('ورود انجام نشد: '+error.message)}
     await refreshAdmin();
   });
   document.getElementById('adminSignup').addEventListener('click',async()=>{
@@ -356,6 +356,7 @@ if(brandMorph){
     if(data.session){await refreshAdmin();return}
     say('حساب ثبت شد. ایمیل تأیید را باز کن و پس از تأیید، از همین بخش وارد شو.');
   });
+  document.getElementById('adminResend').addEventListener('click',async()=>{if(!client)return say('ارتباط با سرویس مدیریت برقرار نشد.');say('در حال ارسال دوباره ایمیل تأیید…');const {error}=await client.auth.resend({type:'signup',email:document.getElementById('adminEmail').value,options:{emailRedirectTo:window.location.origin}});if(error)return say('ارسال ایمیل تأیید انجام نشد: '+error.message);say('ایمیل تأیید دوباره ارسال شد؛ صندوق ورودی و هرزنامه را بررسی کن.')});
   document.getElementById('adminLogout').addEventListener('click',async()=>{await client.auth.signOut();chosenFile=null;preview.hidden=true;uploadBtn.disabled=true;await refreshAdmin();say('از حساب خارج شدی.')});
   fileInput.addEventListener('change',()=>{
     chosenFile=fileInput.files?.[0]||null;uploadBtn.disabled=!chosenFile;
