@@ -190,10 +190,7 @@ cc.addEventListener('touchend',e=>{const dy=e.changedTouches[0].clientY-ccStartY
 document.addEventListener('touchstart',e=>{if(!cc.classList.contains('open')&&e.touches[0].clientY<42){ccStartY=e.touches[0].clientY;ccStartX=e.touches[0].clientX}},{passive:true});
 document.addEventListener('touchend',e=>{if(cc.classList.contains('open'))return;const t=e.changedTouches[0],dy=t.clientY-ccStartY,dx=t.clientX-ccStartX;if(ccStartY<42&&dy>90&&Math.abs(dx)<85)openControlCenter()},{passive:true});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeControlCenter();closeProfile();closeSearch()}});
-document.getElementById('ccNight').addEventListener('click',e=>{document.body.classList.toggle('cc-dark');e.currentTarget.classList.toggle('active',document.body.classList.contains('cc-dark'))});
-document.getElementById('ccMotion').addEventListener('click',e=>{document.body.classList.toggle('cc-motion-off');e.currentTarget.classList.toggle('active',document.body.classList.contains('cc-motion-off'))});
 document.getElementById('ccStories').addEventListener('click',()=>{closeControlCenter();document.getElementById('stories').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccAbout').addEventListener('click',()=>{closeControlCenter();document.getElementById('about').scrollIntoView({behavior:'smooth'})});
 document.getElementById('ccBrightness').addEventListener('input',e=>{const v=Number(e.target.value)/100;document.querySelector('.header-wrap').style.filter='brightness('+v+')';document.querySelector('main').style.filter='brightness('+v+')';document.querySelector('.footer').style.filter='brightness('+v+')'});
 document.getElementById('ccGlass').addEventListener('input',e=>{const v=Number(e.target.value);cc.querySelector('.cc-connectivity').style.setProperty('--glass-alpha',(.2+v/125).toFixed(2));cc.querySelector('.cc-now-playing').style.backdropFilter='blur('+(6+v*.28)+'px) saturate(180%)'});
 document.getElementById('ccProfile').addEventListener('click',openProfile);
@@ -211,7 +208,7 @@ document.getElementById('ccProducts').addEventListener('click',()=>{closeControl
 document.getElementById('ccSupport').addEventListener('click',()=>{closeControlCenter();document.getElementById('contact').scrollIntoView({behavior:'smooth'})});
 document.getElementById('ccCustomize').addEventListener('click',()=>document.getElementById('ccGlass').focus());
 document.querySelectorAll('#ccAirplane,#ccNetwork,#ccWifi,#ccBluetooth,#ccNotifications,#ccFocus,#ccRotate,#ccSilent').forEach(btn=>btn.addEventListener('click',()=>btn.classList.toggle('active')));
-document.getElementById('ccFocusWide').addEventListener('click',e=>{document.body.classList.toggle('cc-motion-off');e.currentTarget.classList.toggle('active')});
+document.getElementById('ccFocusWide').addEventListener('click',e=>{document.body.classList.toggle('cc-dark');e.currentTarget.classList.toggle('active',document.body.classList.contains('cc-dark'))});
 document.getElementById('ccFavorites').addEventListener('click',()=>{closeControlCenter();document.getElementById('stories').scrollIntoView({behavior:'smooth'})});
 document.getElementById('ccAdmin').addEventListener('click',()=>{closeControlCenter();document.getElementById('adminOpen').click()});
 const header=document.getElementById('header');window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>35),{passive:true});
