@@ -144,6 +144,9 @@ body.page-mode main>section[data-page-active="true"]{display:block;min-height:ca
 .cover-dj{border-radius:50%;text-shadow:0 0 25px #f7c95c;box-shadow:0 0 45px #e8ad4c44,inset 0 0 30px #fff2}.cover-persian{border-radius:50% 50% 43% 43%;color:#ffe8c7;text-shadow:0 5px 20px #f8d7a8}.cover-sise{border-radius:18px 18px 34px 34px;color:#e7d8ff}.cover-fashion{border-radius:55% 55% 20px 20px;color:#f8dfd0}.cover-cafe{border-radius:25px 25px 40px 40px;color:#f0d7a5}.cover-arch{border-radius:60px 60px 14px 14px;color:#e9dfc9}.cover-doctor{border-radius:50%;color:#d8ffff;text-shadow:0 0 22px #cfffff}.cover-folio{border-radius:30px;color:#f3d9ff;text-shadow:0 0 22px #e8b9ff}
 .project-card{padding-top:145px}
 @media(max-width:680px){.cc-controls-row{grid-template-columns:1fr 1fr 1.35fr 1fr 1fr;gap:5px}.cc-vertical-slider{height:104px;border-radius:22px}.cc-circle-control,.cc-focus-wide{height:104px}.cc-budget-line{grid-template-columns:auto 1fr auto;gap:6px}.cc-budget-line span,.cc-budget-line b{font-size:8px}.cover-art{width:94px;height:88px;top:18px;font-size:44px}.project-card{padding-top:125px}}
+
+/* Let the glass-strength slider affect real site surfaces, not just the header */
+.service,.knowledge-card,.price-card,.calculator-card,.chat-form,.contact-intro,.review-empty,.faq-list details,.story-ring,.story-inner{background:rgba(255,255,255,var(--glass-alpha,.64));backdrop-filter:blur(var(--glass-blur,18px)) saturate(145%);-webkit-backdrop-filter:blur(var(--glass-blur,18px)) saturate(145%);border-color:rgba(255,255,255,.72)}
 </style>
 </head>
 <body>
