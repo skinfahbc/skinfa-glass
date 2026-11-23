@@ -175,25 +175,44 @@ h1{font-size:clamp(42px,5.3vw,72px);line-height:1.34;letter-spacing:-2px;font-we
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const cc=document.getElementById('controlCenter'),ccOpen=document.getElementById('controlCenterOpen'),ccClose=document.getElementById('ccClose');
-let ccStartY=0,ccStartX=0,ccBrightness=100,ccGlass=65;
+const profileOverlay=document.getElementById('ccProfileOverlay'),searchOverlay=document.getElementById('ccSearchOverlay');
+let ccStartY=0,ccStartX=0;
 function openControlCenter(){cc.classList.add('open');cc.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
 function closeControlCenter(){cc.classList.remove('open');cc.setAttribute('aria-hidden','true');document.body.style.overflow=''}
+function openProfile(){closeControlCenter();profileOverlay.classList.add('open');profileOverlay.setAttribute('aria-hidden','false');['Name','Phone','Email','Address'].forEach(k=>{document.getElementById('ccProfile'+k).value=localStorage.getItem('skinfa_profile_'+k.toLowerCase())||''})}
+function closeProfile(){profileOverlay.classList.remove('open');profileOverlay.setAttribute('aria-hidden','true')}
+function openSearch(){searchOverlay.classList.add('open');searchOverlay.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('ccSearchInput').focus(),80)}
+function closeSearch(){searchOverlay.classList.remove('open');searchOverlay.setAttribute('aria-hidden','true')}
 ccOpen.addEventListener('click',openControlCenter);ccClose.addEventListener('click',closeControlCenter);
 cc.addEventListener('click',e=>{if(e.target===cc)closeControlCenter()});
 cc.addEventListener('touchstart',e=>{ccStartY=e.touches[0].clientY;ccStartX=e.touches[0].clientX},{passive:true});
 cc.addEventListener('touchend',e=>{const dy=e.changedTouches[0].clientY-ccStartY,dx=e.changedTouches[0].clientX-ccStartX;if(dy < -75 && Math.abs(dx)<90)closeControlCenter()},{passive:true});
-document.addEventListener('touchstart',e=>{if(!cc.classList.contains('open')&&e.touches[0].clientY<42) {ccStartY=e.touches[0].clientY;ccStartX=e.touches[0].clientX}},{passive:true});
+document.addEventListener('touchstart',e=>{if(!cc.classList.contains('open')&&e.touches[0].clientY<42){ccStartY=e.touches[0].clientY;ccStartX=e.touches[0].clientX}},{passive:true});
 document.addEventListener('touchend',e=>{if(cc.classList.contains('open'))return;const t=e.changedTouches[0],dy=t.clientY-ccStartY,dx=t.clientX-ccStartX;if(ccStartY<42&&dy>90&&Math.abs(dx)<85)openControlCenter()},{passive:true});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeControlCenter()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeControlCenter();closeProfile();closeSearch()}});
 document.getElementById('ccNight').addEventListener('click',e=>{document.body.classList.toggle('cc-dark');e.currentTarget.classList.toggle('active',document.body.classList.contains('cc-dark'))});
 document.getElementById('ccMotion').addEventListener('click',e=>{document.body.classList.toggle('cc-motion-off');e.currentTarget.classList.toggle('active',document.body.classList.contains('cc-motion-off'))});
 document.getElementById('ccStories').addEventListener('click',()=>{closeControlCenter();document.getElementById('stories').scrollIntoView({behavior:'smooth'})});
 document.getElementById('ccAbout').addEventListener('click',()=>{closeControlCenter();document.getElementById('about').scrollIntoView({behavior:'smooth'})});
-document.getElementById('ccBrightness').addEventListener('input',e=>{ccBrightness=Number(e.target.value);document.documentElement.style.setProperty('--cc-page-brightness',ccBrightness/100);document.querySelector('.header-wrap').style.filter='brightness('+ccBrightness/100+')';document.querySelector('main').style.filter='brightness('+ccBrightness/100+')';document.querySelector('.footer').style.filter='brightness('+ccBrightness/100+')'});
-document.getElementById('ccGlass').addEventListener('input',e=>{ccGlass=Number(e.target.value);cc.style.setProperty('--cc-glass',ccGlass/100);document.querySelector('.cc-panel').style.backdropFilter='blur('+(10+ccGlass*.28)+'px)';});
-document.getElementById('ccSearch').addEventListener('click',()=>{closeControlCenter();document.querySelector('[aria-label="جستجو"]').click()});
-document.getElementById('ccFavorites').addEventListener('click',()=>{closeControlCenter();document.getElementById('stories').scrollIntoView({behavior:'smooth'});});
-document.getElementById('ccContact').addEventListener('click',()=>{closeControlCenter();document.getElementById('contact').scrollIntoView({behavior:'smooth'})});
+document.getElementById('ccBrightness').addEventListener('input',e=>{const v=Number(e.target.value)/100;document.querySelector('.header-wrap').style.filter='brightness('+v+')';document.querySelector('main').style.filter='brightness('+v+')';document.querySelector('.footer').style.filter='brightness('+v+')'});
+document.getElementById('ccGlass').addEventListener('input',e=>{const v=Number(e.target.value);cc.querySelector('.cc-connectivity').style.setProperty('--glass-alpha',(.2+v/125).toFixed(2));cc.querySelector('.cc-now-playing').style.backdropFilter='blur('+(6+v*.28)+'px) saturate(180%)'});
+document.getElementById('ccProfile').addEventListener('click',openProfile);
+document.getElementById('ccProfileClose').addEventListener('click',closeProfile);
+profileOverlay.addEventListener('click',e=>{if(e.target===profileOverlay)closeProfile()});
+document.getElementById('ccProfileSave').addEventListener('click',()=>{['Name','Phone','Email','Address'].forEach(k=>localStorage.setItem('skinfa_profile_'+k.toLowerCase(),document.getElementById('ccProfile'+k).value.trim()));closeProfile();openControlCenter()});
+document.getElementById('searchOpen').addEventListener('click',openSearch);
+document.getElementById('ccSearchClose').addEventListener('click',closeSearch);
+searchOverlay.addEventListener('click',e=>{if(e.target===searchOverlay)closeSearch()});
+document.getElementById('ccSearchInput').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();const found=[...document.querySelectorAll('main h1,main h2,main h3,main p,main a')].filter(el=>q&&el.textContent.toLowerCase().includes(q)).slice(0,6);document.getElementById('ccSearchResults').innerHTML=found.length?found.map((el,i)=>'<button class="cc-search-result" style="display:block;width:100%;text-align:right;padding:10px;border:0;border-bottom:1px solid #ffffff18;background:transparent;color:white" data-result="'+i+'">'+el.textContent.trim().slice(0,90)+'</button>').join(''):'نتیجه‌ای پیدا نشد.';window.skinfaSearchTargets=found});
+document.getElementById('ccSearchResults').addEventListener('click',e=>{const btn=e.target.closest('[data-result]');if(!btn)return;const el=window.skinfaSearchTargets?.[Number(btn.dataset.result)];closeSearch();el?.scrollIntoView({behavior:'smooth',block:'center'})});
+document.getElementById('ccOrders').addEventListener('click',()=>{closeControlCenter();document.getElementById('contact').scrollIntoView({behavior:'smooth'})});
+document.getElementById('ccCart').addEventListener('click',()=>{closeControlCenter();document.getElementById('services').scrollIntoView({behavior:'smooth'})});
+document.getElementById('ccProducts').addEventListener('click',()=>{closeControlCenter();document.getElementById('services').scrollIntoView({behavior:'smooth'})});
+document.getElementById('ccSupport').addEventListener('click',()=>{closeControlCenter();document.getElementById('contact').scrollIntoView({behavior:'smooth'})});
+document.getElementById('ccCustomize').addEventListener('click',()=>document.getElementById('ccGlass').focus());
+document.querySelectorAll('#ccAirplane,#ccNetwork,#ccWifi,#ccBluetooth,#ccNotifications,#ccFocus,#ccRotate,#ccSilent').forEach(btn=>btn.addEventListener('click',()=>btn.classList.toggle('active')));
+document.getElementById('ccFocusWide').addEventListener('click',e=>{document.body.classList.toggle('cc-motion-off');e.currentTarget.classList.toggle('active')});
+document.getElementById('ccFavorites').addEventListener('click',()=>{closeControlCenter();document.getElementById('stories').scrollIntoView({behavior:'smooth'})});
 document.getElementById('ccAdmin').addEventListener('click',()=>{closeControlCenter();document.getElementById('adminOpen').click()});
 const header=document.getElementById('header');window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>35),{passive:true});
 const menu=document.getElementById('mobileMenu'),openBtn=document.getElementById('menuOpen'),closeBtn=document.getElementById('menuClose');
